@@ -1,7 +1,4 @@
 import java.io.*;
-import java.util.Scanner;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -9,20 +6,23 @@ import java.util.concurrent.TimeUnit;
  */
 public class RunScript {
 
+    private static final boolean DEBUG = false;
     private static boolean isDone = false;
     private static String database = "BADM";
     private static String fileToSaveIn = "BADM_20180123.sql";
     private static String phraseToLookFor = "PostgreSQL database dump complete";
-    private static final int delay = 5;
+    private static final int delay = 2;
 
     public static void main(String[] args) {
-        if(args.length == 2) {
-            database = args[0];
-            fileToSaveIn = args[1];
-        } else {
-            System.out.println("Please run: RunScript <dbName> <fileName>");
+        if(DEBUG) {
+            if(args.length == 2) {
+                database = args[0];
+                fileToSaveIn = args[1];
+            } else {
+                System.out.println("Please run: RunScript <dbName> <fileName>");
 //            return;
-        }
+            }
+        } // used only for debugging
 
 
         RunScript runScript = new RunScript();
@@ -39,7 +39,7 @@ public class RunScript {
                 //wait 2 min
                 System.out.println("Waiting for process to finish!");
                 try {
-                    Thread.sleep(5000);
+                    Thread.sleep(delay);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -117,7 +117,7 @@ public class RunScript {
                 System.out.print(line + "\n");
             }
             // waits for delay until the process represented by this object has terminated
-            proc.waitFor(delay, TimeUnit.SECONDS);
+//            proc.waitFor(delay, TimeUnit.SECONDS);
             System.out.println("==== Done waiting process! ====");
 
             File file = new File(fileName);
@@ -130,11 +130,12 @@ public class RunScript {
             System.out.println("Wrong input for pg_dump: " + e.getMessage());
             System.out.println("Backup file was probably not created");
             this.setDone(true);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-            System.out.println("Backup file was probably not created");
-            this.setDone(true);
         }
+//        catch (InterruptedException e) {
+//            e.printStackTrace();
+//            System.out.println("Backup file was probably not created");
+//            this.setDone(true);
+//        }
     }
 
 
