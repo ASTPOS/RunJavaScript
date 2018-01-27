@@ -13,13 +13,17 @@ public class RunScript {
     private static String database = "BADM";
     private static String fileToSaveIn = "BADM_20180123.sql";
     private static String phraseToLookFor = "PostgreSQL database dump complete";
-    private static final int delay = 120;
+    private static final int delay = 5;
 
     public static void main(String[] args) {
-//        if(args.length != 2) {
-//            System.out.println("Please run: RunScript <dbName> <fileName>");
+        if(args.length == 2) {
+            database = args[0];
+            fileToSaveIn = args[1];
+        } else {
+            System.out.println("Please run: RunScript <dbName> <fileName>");
 //            return;
-//        }
+        }
+
 
         RunScript runScript = new RunScript();
 
@@ -27,23 +31,29 @@ public class RunScript {
         runScript.doBackup(database, fileToSaveIn);
 
         // check if done
-        while(!runScript.backUpIsDone()) {
+        while(!runScript.isBackupDone()) {
             System.out.println("Starting to read file");
             runScript.parseFile(fileToSaveIn, phraseToLookFor);
 
-            if(!runScript.backUpIsDone()) {
+            if(!runScript.isBackupDone()) {
                 //wait 2 min
                 System.out.println("Waiting for process to finish!");
-                Runnable runnable = () -> {
-                    System.out.println("Waited: "+delay+" sec, checking again...");
-                };
-                ScheduledExecutorService service = Executors
-                        .newSingleThreadScheduledExecutor();
-                service.schedule(runnable, delay, TimeUnit.SECONDS);
+                try {
+                    Thread.sleep(5000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+//                Runnable runnable = () -> {
+//                    System.out.println("Waited: "+delay+" sec, checking again...");
+//                };
+//                ScheduledExecutorService service = Executors
+//                        .newSingleThreadScheduledExecutor();
+//                service.schedule(runnable, delay, TimeUnit.SECONDS);
             }
         }
 
-        System.out.println("Back completed! the local variables will be reset");
+        System.out.println("Process finished! The local variables will be reset");
         isDone = false;
     }
 
@@ -52,8 +62,12 @@ public class RunScript {
      * Status of isDone variable
      * @return true if the required line is found in the fileName
      */
-    private boolean backUpIsDone(){
+    private boolean isBackupDone(){
         return isDone;
+    }
+
+    private void setDone(boolean status){
+        isDone = status;
     }
 
 
@@ -67,18 +81,31 @@ public class RunScript {
         File file = new File(fileName);
         try {
             String line;
-            Scanner scanner = new Scanner(file);
-            while(scanner.hasNext()) {
-                line = scanner.nextLine();
+//            Scanner scanner = new Scanner(file); //use BufferReader =faster
+            BufferedReader reader = new BufferedReader(new FileReader(file));
+
+            while((line = reader.readLine()) != null) {
                 if(line.contains(phrase)) {
                     isDone = true;
                     System.out.println("Done: "+line);
                 }
             }
+
+//            while(scanner.hasNext()) {
+//                line = scanner.nextLine();
+//                if(line.contains(phrase)) {
+//                    isDone = true;
+//                    System.out.println("Done: "+line);
+//                }
+//            }
+            System.out.println("File has been read!");
         } catch (FileNotFoundException e) {
+            System.out.println("Could not read the file: "+e.getMessage());
+            System.out.println("Check DB name or file path");
+            this.setDone(true);
+        } catch (IOException e) {
             e.printStackTrace();
         }
-        System.out.println("File has been read!");
     }
 
 
@@ -92,6 +119,7 @@ public class RunScript {
         //prepare and run DB back up script using provided parameters
         command = "pg_dump -U postgres "+dbName+" -f "+fileName+" -h localhost";
 //        command = "pwd";
+
         try {
             Process proc = Runtime.getRuntime().exec(command);
 
@@ -105,13 +133,25 @@ public class RunScript {
             }
             // waits for delay until the process represented by this object has terminated
             proc.waitFor(delay, TimeUnit.SECONDS);
+            System.out.println("==== Done waiting process! ====");
+
+            File file = new File(fileName);
+            if(file.exists() && !file.isDirectory()) {
+                System.out.println("Backup file was created!");
+            } else {
+                System.out.println("Backup file was NOT created! Check DB Name.");
+            }
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println("Wrong input for pg_dump: " + e.getMessage());
+            System.out.println("Backup file was probably not created");
+            this.setDone(true);
         } catch (InterruptedException e) {
             e.printStackTrace();
+            System.out.println("Backup file was probably not created");
+            this.setDone(true);
         }
-        System.out.println("Back up file was created!");
     }
+
 
 
 }
