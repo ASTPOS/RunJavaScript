@@ -43,13 +43,6 @@ public class RunScript {
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-
-//                Runnable runnable = () -> {
-//                    System.out.println("Waited: "+delay+" sec, checking again...");
-//                };
-//                ScheduledExecutorService service = Executors
-//                        .newSingleThreadScheduledExecutor();
-//                service.schedule(runnable, delay, TimeUnit.SECONDS);
             }
         }
 
@@ -81,7 +74,6 @@ public class RunScript {
         File file = new File(fileName);
         try {
             String line;
-//            Scanner scanner = new Scanner(file); //use BufferReader =faster
             BufferedReader reader = new BufferedReader(new FileReader(file));
 
             while((line = reader.readLine()) != null) {
@@ -91,13 +83,6 @@ public class RunScript {
                 }
             }
 
-//            while(scanner.hasNext()) {
-//                line = scanner.nextLine();
-//                if(line.contains(phrase)) {
-//                    isDone = true;
-//                    System.out.println("Done: "+line);
-//                }
-//            }
             System.out.println("File has been read!");
         } catch (FileNotFoundException e) {
             System.out.println("Could not read the file: "+e.getMessage());
