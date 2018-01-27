@@ -117,7 +117,7 @@ public class RunScript {
                 System.out.print(line + "\n");
             }
             // waits for delay until the process represented by this object has terminated
-//            proc.waitFor(delay, TimeUnit.SECONDS);
+            proc.waitFor(delay, TimeUnit.SECONDS);
             System.out.println("==== Done waiting process! ====");
 
             File file = new File(fileName);
@@ -131,13 +131,11 @@ public class RunScript {
             System.out.println("Backup file was probably not created");
             this.setDone(true);
         }
-//        catch (InterruptedException e) {
-//            e.printStackTrace();
-//            System.out.println("Backup file was probably not created");
-//            this.setDone(true);
-//        }
+        catch (InterruptedException e) {
+            e.printStackTrace();
+            System.out.println("Backup file was probably not created");
+            this.setDone(true);
+        }
     }
-
-
 
 }
